@@ -1,0 +1,120 @@
+﻿@model HomeViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container mb-4">
+    @using (Html.BeginForm("Send", "Home", FormMethod.Post))
+    {
+        <div class="row">
+
+            <div class="col-4">
+                @Html.LabelFor(x => x.UserData.FirstName)
+                @Html.TextBoxFor(x => x.UserData.FirstName, new { @class = "form-control" })
+                @Html.ValidationMessage("First Name", new { @class = "text-danger" })
+            </div>
+
+            <div class="col-4">
+                @Html.LabelFor(x => x.UserData.LastName)
+                @Html.TextBoxFor(x => x.UserData.LastName, new { @class = "form-control" })
+                @Html.ValidationMessage("Last Name", new { @class = "text-danger" })
+            </div>
+
+            <div class="col-2">
+                @Html.LabelFor(x => x.UserData.Participation)
+                @Html.TextBoxFor(x => x.UserData.Participation, new { @class = "form-control" })
+                @Html.ValidationMessage("Participation", new { @class = "text-danger" })
+            </div>
+
+            <div class="col-2">
+                <label>&nbsp;</label>
+                <input type="submit" class="btn btn-primary form-control" value="Send" />
+            </div>
+
+        </div>
+    }
+</div>
+
+
+<h3 class="text-center">DATA</h3>
+
+<div class="container">
+    <div class="row">
+        <div class="col-6">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">First Name</th>
+                        <th scope="col">Last Name</th>
+                        <th scope="col">Participation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var data in Model.Users)
+                    {
+                        <tr>
+                            <td>@data.FirstName</td>
+                            <td>@data.LastName</td>
+                            <td>@data.Participation %</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-6">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
+</div>
+@section Scripts {
+    <script>
+
+    $(function () {
+        $.ajax({
+                url: '@Url.Action("GetData", "Home")',
+                type: 'GET',
+                dataType: "json",
+                success: function (data) {
+                    if (data.status) {
+
+                        var participation = [];
+                        var names = [];
+                        for (var i in data.users) {
+                            participation.push(data.users[i].participation);
+                            names.push(data.users[i].firstName);
+                        }
+
+                        console.log(participation);
+                        console.log(names);
+
+                        var ctx = document.getElementById('myChart').getContext('2d');
+
+                        var myPieChart = new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                datasets: [{
+                                    data: participation,
+                                    backgroundColor: data.colors,
+                                }],
+
+                                // These labels appear in the legend and in the tooltips when hovering different arcs
+                                labels: names
+                            }
+                        });
+
+
+                        } else {
+                            console.log("Error");
+                        }
+
+                },
+                error: function (data) {
+                    console.log("Error");
+                }
+                });
+    });
+    </script>
+}
+
+
